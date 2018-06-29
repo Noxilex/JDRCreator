@@ -64,16 +64,16 @@ function drawTile(x, y){
 function drawGrid(){
   ctx.strokeStyle = "black";
   ctx.lineWidth = 2;
+  ctx.beginPath();
   for(i = 0; i < height; i+= caseSizeH){
     ctx.moveTo(i, 0);
     ctx.lineTo(i, width);
-    ctx.stroke();
   }
   for(j = 0; j < width; j+= caseSizeW){
     ctx.moveTo(0, j);
     ctx.lineTo(height, j);
-    ctx.stroke();
   }
+  ctx.stroke();
 }
 
 function updateMouse(e){
@@ -100,7 +100,7 @@ function draw(){
 }
 window.addEventListener('mousemove', updateMouse, false);
 
-function  getMousePos(canvas, evt) {
+function getMousePos(canvas, evt) {
   var rect = canvas.getBoundingClientRect(), // abs. size of element
       scaleX = canvas.width / rect.width,    // relationship bitmap vs. element for X
       scaleY = canvas.height / rect.height;  // relationship bitmap vs. element for Y
