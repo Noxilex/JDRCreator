@@ -1,0 +1,18 @@
+{
+  "name": "RPG-Master",
+  "homepage": "public/index.html",
+  "description": "",
+  "main": "",
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "underscore": "^1.9.1"
+  }
+}
