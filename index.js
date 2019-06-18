@@ -19,15 +19,42 @@ var state = {
 	SELECTING: false
 };
 
+//Selection
 var selection = {
 	from: {},
 	to: {},
+	ground: groundType.DIRT,
 	area: []
 };
+
+//Colors
+var outline = "rgba(0,0,0,0.5)";
+
+function setupUI() {
+	let groundButtons = document.querySelector("#ground-buttons");
+
+	for (const type in groundType) {
+		let button = document.createElement("button");
+
+		if (groundType.hasOwnProperty(type)) {
+			const ground = groundType[type];
+			button.innerText = type;
+			button.style.backgroundColor = ground.color;
+			button.onclick = function() {
+				selection.ground = ground;
+			};
+			groundButtons.appendChild(button);
+		}
+	}
+}
 
 function setup() {
 	//let boardSizeRaw = prompt("Board size: x y");
 
+	//Setup the UI
+	setupUI();
+
+	//Setup board
 	let boardSizeRaw = "30 30";
 	let sizeRaw = boardSizeRaw.split(" ");
 	if (sizeRaw.length != 2) {
@@ -65,17 +92,18 @@ function draw() {
 	var buffer_ctx = buffer.getContext("2d");
 	var ctx = canvas.getContext("2d");
 
-	//Cell fill
+	//Cell fill (overwritten by cell color)
 	buffer_ctx.fillStyle = "#ffcc88";
 	//Cell stroke
-	buffer_ctx.strokeStyle = "#ccaa66";
+	buffer_ctx.strokeStyle = outline;
 	//Cells draw
 	board.draw(buffer_ctx, cellSize);
 
 	//Selection draw
 	if (selection.area) {
 		selection.area.forEach(cell => {
-			buffer_ctx.fillStyle = "rgba(0, 0, 255, 0.1)";
+			cell.draw(buffer_ctx, cellSize, selection.ground.color);
+			buffer_ctx.fillStyle = "rgba(255,255,255,0.05)";
 			buffer_ctx.fillRect(
 				cell.pos.x * cellSize,
 				cell.pos.y * cellSize,
@@ -87,20 +115,9 @@ function draw() {
 
 	//Hovered cell draw
 	if (hoveredCell) {
-		buffer_ctx.strokeStyle = "black";
-		buffer_ctx.strokeRect(
-			hoveredCell.pos.x * cellSize,
-			hoveredCell.pos.y * cellSize,
-			cellSize,
-			cellSize
-		);
+		hoveredCell.draw(buffer_ctx, cellSize, selection.ground.color);
 		buffer_ctx.fillStyle = "rgba(255,255,255,0.2)";
-		buffer_ctx.fillRect(
-			hoveredCell.pos.x * cellSize,
-			hoveredCell.pos.y * cellSize,
-			cellSize,
-			cellSize
-		);
+		hoveredCell.draw(buffer_ctx, cellSize, buffer_ctx.fillStyle);
 	}
 
 	//Put buffer in visible canvas
@@ -132,6 +149,12 @@ canvas.addEventListener("mousedown", event => {
 	selection.from = getPosFromMousePos(startPos);
 });
 
+document.addEventListener("mouseup", event => {
+	state.SELECTING = false;
+	fillSelection(selection);
+	selection.area = [];
+});
+
 canvas.addEventListener("mouseup", event => {
 	state.SELECTING = false;
 	endPos = getMousePos(canvas, event);
@@ -139,7 +162,15 @@ canvas.addEventListener("mouseup", event => {
 
 	let corners = getCorners(selection.from, selection.to);
 	selection.area = board.getCells(corners.tl, corners.br);
+	fillSelection(selection);
+	selection.area = [];
 });
+
+function fillSelection(selection) {
+	selection.area.forEach(elt => {
+		elt.ground = selection.ground;
+	});
+}
 
 function getCellAtMousePos(mousePos, cellSize) {
 	return board.getCell(

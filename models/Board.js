@@ -65,21 +65,7 @@ class Board {
 	draw(ctx, cellSize) {
 		for (let y = 0; y < this.height; y++) {
 			for (let x = 0; x < this.width; x++) {
-				let cell = this.getCell(x, y);
-				ctx.fillRect(
-					cell.pos.x * cellSize,
-					cell.pos.y * cellSize,
-					cellSize,
-					cellSize
-				);
-
-				//Draws the outline
-				ctx.strokeRect(
-					cell.pos.x * cellSize,
-					cell.pos.y * cellSize,
-					cellSize,
-					cellSize
-				);
+				this.getCell(x, y).draw(ctx, cellSize);
 			}
 		}
 	}
