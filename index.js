@@ -3,7 +3,7 @@
 //Game board
 var board;
 var canvas = document.querySelector("#visible-canvas");
-var cellSize = 30;
+var cellSize = 45;
 
 //Interactive cells
 var selectedArea;
@@ -23,7 +23,7 @@ var state = {
 var selection = {
 	from: {},
 	to: {},
-	ground: groundType.DIRT,
+	tileElement: groundType.DIRT,
 	area: []
 };
 
@@ -31,6 +31,7 @@ var selection = {
 var outline = "rgba(0,0,0,0.5)";
 
 function setupUI() {
+	// Setup ground buttons
 	let groundButtons = document.querySelector("#ground-buttons");
 
 	for (const type in groundType) {
@@ -41,9 +42,28 @@ function setupUI() {
 			button.innerText = type;
 			button.style.backgroundColor = ground.color;
 			button.onclick = function() {
-				selection.ground = ground;
+				selection.tileElement = ground;
 			};
 			groundButtons.appendChild(button);
+		}
+	}
+
+	// Setups entities buttons
+	let entitiesButtons = document.querySelector("#entities-buttons");
+
+	for (const type in entityType) {
+		let button = document.createElement("button");
+
+		if (entityType.hasOwnProperty(type)) {
+			const entity = entityType[type];
+			button.innerText = type;
+			if (entity) {
+				button.style.backgroundColor = entity.color;
+			}
+			button.onclick = function() {
+				selection.tileElement = entity;
+			};
+			entitiesButtons.appendChild(button);
 		}
 	}
 }
@@ -55,7 +75,7 @@ function setup() {
 	setupUI();
 
 	//Setup board
-	let boardSizeRaw = "30 30";
+	let boardSizeRaw = "20 20";
 	let sizeRaw = boardSizeRaw.split(" ");
 	if (sizeRaw.length != 2) {
 		throw new Error("Wrong number of arguments");
@@ -81,6 +101,39 @@ function processPlayerInput() {}
 
 function updateGameLogic() {}
 
+function previewCell(ctx, cell) {
+	//Draw cell ground
+	ctx.fillStyle = cell.ground.color;
+	ctx.fillRect(
+		cell.pos.x * cellSize,
+		cell.pos.y * cellSize,
+		cellSize,
+		cellSize
+	);
+
+	//Draw the cell entity
+	if (cell.entity && cell.entity != entityType.EMPTY) {
+		ctx.fillStyle = cell.entity.color;
+		ctx.beginPath();
+		ctx.arc(
+			cell.pos.x * cellSize + cellSize / 2,
+			cell.pos.y * cellSize + cellSize / 2,
+			cellSize / 3,
+			0,
+			2 * Math.PI
+		);
+		ctx.fill();
+		ctx.stroke();
+	}
+	//Draws the outline
+	ctx.strokeRect(
+		cell.pos.x * cellSize,
+		cell.pos.y * cellSize,
+		cellSize,
+		cellSize
+	);
+}
+
 function draw() {
 	//Create a buffer to modify canvas without interrupting the live canvas
 	var buffer = document.createElement("canvas");
@@ -102,7 +155,7 @@ function draw() {
 	//Selection draw
 	if (selection.area) {
 		selection.area.forEach(cell => {
-			cell.draw(buffer_ctx, cellSize, selection.ground.color);
+			previewCell(buffer_ctx, cell);
 			buffer_ctx.fillStyle = "rgba(255,255,255,0.05)";
 			buffer_ctx.fillRect(
 				cell.pos.x * cellSize,
@@ -115,7 +168,7 @@ function draw() {
 
 	//Hovered cell draw
 	if (hoveredCell) {
-		hoveredCell.draw(buffer_ctx, cellSize, selection.ground.color);
+		hoveredCell.draw(buffer_ctx, cellSize);
 		buffer_ctx.fillStyle = "rgba(255,255,255,0.2)";
 		hoveredCell.draw(buffer_ctx, cellSize, buffer_ctx.fillStyle);
 	}
@@ -143,7 +196,7 @@ canvas.addEventListener("mousemove", event => {
 canvas.addEventListener("mousedown", event => {
 	state.SELECTING = true;
 
-	selectedArea = [];
+	selection.area = [];
 
 	startPos = getMousePos(canvas, event);
 	selection.from = getPosFromMousePos(startPos);
@@ -166,10 +219,22 @@ canvas.addEventListener("mouseup", event => {
 	selection.area = [];
 });
 
+canvas.addEventListener("mouseleave", event => {
+	hoveredCell = null;
+});
+
 function fillSelection(selection) {
 	selection.area.forEach(elt => {
-		elt.ground = selection.ground;
+		setType(elt);
 	});
+}
+
+function setType(elt) {
+	if (selection.tileElement instanceof Ground) {
+		elt.ground = selection.tileElement;
+	} else if (selection.tileElement instanceof Entity) {
+		elt.entity = selection.tileElement;
+	}
 }
 
 function getCellAtMousePos(mousePos, cellSize) {
