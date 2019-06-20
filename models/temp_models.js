@@ -84,6 +84,10 @@ class GameObject extends Entity {
 var entityType = {
 	EMPTY: new Entity(),
 	TREE: new GameObject("#228b22"),
+	STONE: new GameObject("#91a3b0"),
+	WOOD: new GameObject("#c19a6b"),
+	REDWOOD: new GameObject("#a45a52"),
+	DARKWOOD: new GameObject("#654321"),
 	ENNEMY: new GameCharacter("#FF0000"),
 	ALLY: new GameCharacter("#00FF00")
 };

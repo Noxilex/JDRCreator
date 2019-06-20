@@ -121,7 +121,7 @@ function draw() {
 	if (selection.area) {
 		selection.area.forEach(cell => {
 			selection.tileElement.draw(buffer_ctx, cell.pos, cellSize);
-			buffer_ctx.fillStyle = "rgba(255,255,255,0.05)";
+			buffer_ctx.fillStyle = "rgba(255,255,255,0.2)";
 			buffer_ctx.fillRect(
 				cell.pos.x * cellSize,
 				cell.pos.y * cellSize,
@@ -131,14 +131,14 @@ function draw() {
 		});
 
 		//TODO: Fix outline left selection
-		buffer_ctx.strokeStyle = "white";
-		buffer_ctx.lineWidth = 3;
-		buffer_ctx.strokeRect(
-			selection.from.x * cellSize,
-			selection.from.y * cellSize,
-			(selection.to.x - selection.from.x) * cellSize + cellSize,
-			(selection.to.y - selection.from.y) * cellSize + cellSize
-		);
+		// buffer_ctx.strokeStyle = "white";
+		// buffer_ctx.lineWidth = 3;
+		// buffer_ctx.strokeRect(
+		// 	selection.from.x * cellSize,
+		// 	selection.from.y * cellSize,
+		// 	(selection.to.x - selection.from.x) * cellSize + cellSize,
+		// 	(selection.to.y - selection.from.y) * cellSize + cellSize
+		// );
 	}
 
 	//Hovered cell draw
