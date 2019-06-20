@@ -4,11 +4,16 @@ Skeleton for gameboard projects
 
 ## TODO
 
--   [ ] Add NPC
+-   [ ] Auto-deploy (CI)
+-   [x] Add Entities
 -   [ ] Add custom colors/names
 -   [ ] Undo last action
 -   [ ] User can save his maps (DB) or localStorage
 -   [ ] Show tile info on hover
+-   [ ] Big map & select a portion to start fight mode
+-   [ ] Fog of war
+-   [ ] Music player for ambiance
+-   [ ] Dice roller
 
 ## Problems
 

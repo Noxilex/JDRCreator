@@ -101,39 +101,6 @@ function processPlayerInput() {}
 
 function updateGameLogic() {}
 
-function previewCell(ctx, cell) {
-	//Draw cell ground
-	ctx.fillStyle = cell.ground.color;
-	ctx.fillRect(
-		cell.pos.x * cellSize,
-		cell.pos.y * cellSize,
-		cellSize,
-		cellSize
-	);
-
-	//Draw the cell entity
-	if (cell.entity && cell.entity != entityType.EMPTY) {
-		ctx.fillStyle = cell.entity.color;
-		ctx.beginPath();
-		ctx.arc(
-			cell.pos.x * cellSize + cellSize / 2,
-			cell.pos.y * cellSize + cellSize / 2,
-			cellSize / 3,
-			0,
-			2 * Math.PI
-		);
-		ctx.fill();
-		ctx.stroke();
-	}
-	//Draws the outline
-	ctx.strokeRect(
-		cell.pos.x * cellSize,
-		cell.pos.y * cellSize,
-		cellSize,
-		cellSize
-	);
-}
-
 function draw() {
 	//Create a buffer to modify canvas without interrupting the live canvas
 	var buffer = document.createElement("canvas");
@@ -147,15 +114,13 @@ function draw() {
 
 	//Cell fill (overwritten by cell color)
 	buffer_ctx.fillStyle = "#ffcc88";
-	//Cell stroke
-	buffer_ctx.strokeStyle = outline;
 	//Cells draw
-	board.draw(buffer_ctx, cellSize);
+	board.draw(buffer_ctx, cellSize, outline);
 
 	//Selection draw
 	if (selection.area) {
 		selection.area.forEach(cell => {
-			previewCell(buffer_ctx, cell);
+			selection.tileElement.draw(buffer_ctx, cell.pos, cellSize);
 			buffer_ctx.fillStyle = "rgba(255,255,255,0.05)";
 			buffer_ctx.fillRect(
 				cell.pos.x * cellSize,
@@ -164,13 +129,37 @@ function draw() {
 				cellSize
 			);
 		});
+
+		//TODO: Fix outline left selection
+		buffer_ctx.strokeStyle = "white";
+		buffer_ctx.lineWidth = 3;
+		buffer_ctx.strokeRect(
+			selection.from.x * cellSize,
+			selection.from.y * cellSize,
+			(selection.to.x - selection.from.x) * cellSize + cellSize,
+			(selection.to.y - selection.from.y) * cellSize + cellSize
+		);
 	}
 
 	//Hovered cell draw
 	if (hoveredCell) {
-		hoveredCell.draw(buffer_ctx, cellSize);
-		buffer_ctx.fillStyle = "rgba(255,255,255,0.2)";
-		hoveredCell.draw(buffer_ctx, cellSize, buffer_ctx.fillStyle);
+		selection.tileElement.draw(buffer_ctx, hoveredCell.pos, cellSize);
+		//White hover
+		buffer_ctx.fillStyle = "rgba(255,255,255,0.1)";
+		buffer_ctx.fillRect(
+			hoveredCell.pos.x * cellSize,
+			hoveredCell.pos.y * cellSize,
+			cellSize,
+			cellSize
+		);
+		buffer_ctx.lineWidth = 2;
+		buffer_ctx.strokeStyle = "rgba(255,255,255,0.2)";
+		buffer_ctx.strokeRect(
+			hoveredCell.pos.x * cellSize,
+			hoveredCell.pos.y * cellSize,
+			cellSize,
+			cellSize
+		);
 	}
 
 	//Put buffer in visible canvas
@@ -196,7 +185,7 @@ canvas.addEventListener("mousemove", event => {
 canvas.addEventListener("mousedown", event => {
 	state.SELECTING = true;
 
-	selection.area = [];
+	resetSelection();
 
 	startPos = getMousePos(canvas, event);
 	selection.from = getPosFromMousePos(startPos);
@@ -205,7 +194,7 @@ canvas.addEventListener("mousedown", event => {
 document.addEventListener("mouseup", event => {
 	state.SELECTING = false;
 	fillSelection(selection);
-	selection.area = [];
+	resetSelection();
 });
 
 canvas.addEventListener("mouseup", event => {
@@ -216,24 +205,42 @@ canvas.addEventListener("mouseup", event => {
 	let corners = getCorners(selection.from, selection.to);
 	selection.area = board.getCells(corners.tl, corners.br);
 	fillSelection(selection);
-	selection.area = [];
+	resetSelection();
 });
 
 canvas.addEventListener("mouseleave", event => {
 	hoveredCell = null;
 });
 
+/**
+ * Fills the selected area with the type selected
+ * @param {*} selection
+ */
 function fillSelection(selection) {
 	selection.area.forEach(elt => {
 		setType(elt);
 	});
 }
 
+function resetSelection() {
+	selection.area = [];
+	selection.from = {};
+	selection.to = {};
+}
+
 function setType(elt) {
 	if (selection.tileElement instanceof Ground) {
 		elt.ground = selection.tileElement;
-	} else if (selection.tileElement instanceof Entity) {
-		elt.entity = selection.tileElement;
+	} else if (selection.tileElement instanceof GameObject) {
+		elt.object = selection.tileElement;
+	} else if (selection.tileElement instanceof GameCharacter) {
+		elt.character = selection.tileElement;
+	} else if (
+		selection.tileElement instanceof Entity &&
+		selection.tileElement == entityType.EMPTY
+	) {
+		elt.character = selection.tileElement;
+		elt.object = selection.tileElement;
 	}
 }
 

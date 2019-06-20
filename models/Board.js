@@ -62,10 +62,14 @@ class Board {
 	/**
 	 * Draw function
 	 */
-	draw(ctx, cellSize) {
+	draw(ctx, cellSize, outlineColor) {
 		for (let y = 0; y < this.height; y++) {
 			for (let x = 0; x < this.width; x++) {
 				this.getCell(x, y).draw(ctx, cellSize);
+				//Draw outline
+				ctx.lineWidth = 1;
+				ctx.strokeStyle = outlineColor;
+				ctx.strokeRect(x * cellSize, y * cellSize, cellSize, cellSize);
 			}
 		}
 	}
